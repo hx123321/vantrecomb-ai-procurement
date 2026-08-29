@@ -20,24 +20,40 @@ Turn a buyer's requirements into a grounded sourcing workflow. Vantrecomb combin
 - **One product RFQ:** create an RFQ session, present a concise buyer-facing summary, obtain confirmation, then submit the RFQ.
 - **Several selected products:** use the AI quote-folder submission workflow after confirmation.
 - **Check one submitted RFQ:** send the verification code, verify it, then use the short-lived RFQ token exactly as documented.
-- **Quotes, orders, shipments, documents, or profile:** use `/ai/me/*` only with the user's scoped API token and only for data the user is authorized to access.
+- **Quotes, orders, shipments, documents, or profile:** use `/ai/me/*` only with the user's scoped token and only for data the user is authorized to access.
 
 ## Protect buyer control
 
 - Show the final requirement summary and request explicit approval before every write request.
-- Send a unique `Idempotency-Key` for every `POST` request.
+- Send a unique `Idempotency-Key` for every `POST`/`PATCH` request.
 - Treat an accepted message as recorded, not answered; never fabricate a sales reply or business commitment.
 - Ask before irreversible commercial actions. Keep tokens out of prompts, logs, repositories, and command history.
+- For `/ai/me/*` writes (`accept`, `request-revision`, `messages`, `PATCH profile`, `rfqs/quote-folder submit`), the Skill requires `--confirm` and an explicit buyer confirmation; denied/revoked tokens must stop writes.
 
-## Configure API access
+## Configure API access (OAuth + least-privilege)
 
-Ask the user to sign in to Vantrecomb, open **API Tokens** from the toolbar, and create a least-privilege token. Store it only in `VANTRECOMB_API_TOKEN` in the AI tool's secure environment.
+Use OAuth or Device Authorization — never handle plaintext long-term tokens in Skill files.
+
+1. **Pick minimal scopes:** run `python scripts/vantrecomb_api.py scopes` to see 8 scopes. Always request the smallest set needed, never all. Example: `me:quotes:read` for reading quotes; add `me:files:download` only if files needed.
+2. **Browser available:** `python scripts/vantrecomb_api.py auth login --scope "me:quotes:read" --redirect-uri https://client.example.com/callback` (PKCE S256). The Skill opens the authorization URL, user signs in, approves, then the Skill exchanges the code for a 15-minute `apt_` token (hash-stored server side).
+3. **No browser / headless / device switch:** `python scripts/vantrecomb_api.py auth device --scope "me:quotes:read"` — shows `user_code` + `verification_uri` (`https://api.vantrecomb.com/oauth/device`). User completes approval on any phone/browser; device polls until granted/denied/expired.
+4. **Legacy manual token (optional):** sign in → **API Tokens** (toolbar) → create least-privilege token → store only in `VANTRECOMB_API_TOKEN` secure env (never commit). Tokens are `apt_` and shown once.
+5. **Check & revoke:** `python scripts/vantrecomb_api.py auth status` verifies token; `auth revoke` explains revocation via **API Tokens** page (revoking a grant revokes all derived tokens). After deny/revoke, Skill stops writes (expects 401/403).
+
+**Boundaries & recovery:**
+- `code` / `device_code` / `user_code` expire in 10 min → rerun `auth device`/`auth login`.
+- Device switched or no browser → use Device flow on new device, same `user_code` verification works from any browser.
+- Scope upgrade → re-authorize with larger scope (new device code or new auth URL).
+- Expired/revoked token → `auth status` shows 401/403; re-authorize.
 
 ```powershell
+python scripts/vantrecomb_api.py scopes
+python scripts/vantrecomb_api.py auth device --scope "me:quotes:read"
+python scripts/vantrecomb_api.py auth status
 python scripts/vantrecomb_api.py guide
 python scripts/vantrecomb_api.py catalog products
 python scripts/vantrecomb_api.py request GET /api/v1/ai/me/quotes
-python scripts/vantrecomb_api.py request POST /api/v1/ai/rfqs --data '{"...":"..."}' --idempotency-key <unique-value>
+python scripts/vantrecomb_api.py request POST /api/v1/ai/me/quotes/Q123/messages --data '{"note":"hello"}' --idempotency-key <unique> --confirm
 ```
 
-The wrapper uses Python's standard library, sends all requests to `https://api.vantrecomb.com`, and refuses absolute URLs or non-AI paths.
+The wrapper uses Python's standard library, sends all requests to `https://api.vantrecomb.com`, refuses absolute URLs or non-AI paths, never persists plaintext tokens, and enforces buyer confirmation for high-risk writes.
