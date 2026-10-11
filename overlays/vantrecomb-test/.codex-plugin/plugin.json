@@ -1,0 +1,19 @@
+{
+  "apps": "./.app.json",
+  "author": {
+    "name": "App developer"
+  },
+  "description": "VANTRE Procurement TEST",
+  "interface": {
+    "capabilities": [],
+    "category": "Other",
+    "defaultPrompt": null,
+    "developerName": "App developer",
+    "displayName": "VANTRE Procurement TEST",
+    "longDescription": "VANTRE Procurement TEST",
+    "shortDescription": "VANTRE Procurement TEST"
+  },
+  "name": "dev-6acc06a725048191bbf860d0b7a72642",
+  "version": "1.0.1",
+  "skills": "./skills"
+}
