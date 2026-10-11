@@ -9,14 +9,14 @@ Read `references/procurement-workflow.md` before calling an endpoint. Ask for pr
 
 ## Cloud plugin
 
-On web and desktop, use the ChatGPT cloud connection bound to this plugin. Connect opens the Vantrecomb website for the buyer to sign in and consent. Account tools then use that buyer's granted scopes and record ownership. Installing the skill alone does not connect an account. Reconnect through the host when needed; do not switch to a local client or another account to bypass a failed connection.
+On web and desktop, use the ChatGPT cloud connection bound to this plugin and the host's Connect / OAuth flow for the buyer to sign in and consent on the provider website. Installing the skill alone does not connect an account. Before calling anything, inspect the actual connected tools and their schemas; use the connection's verified metadata for OAuth endpoints, client registration, resource and scopes. This package has not verified the deployed procurement MCP service or DCR. Do not assume that /mcp, /oauth/register or any historical resource binding is available. If connection or tools are missing, report that state and wait for the supported host connection flow; do not switch to a local client, browser session headers, manual token or another account to bypass it.
 
-Use the plugin's MCP tools when available. The procurement MCP is hosted by the existing Vantrecomb B2B backend; it does not require Python on a buyer's device.
+Use the plugin's MCP tools when available; cloud use does not require Python on a buyer's device. The names and capabilities below are historical package guidance, not a live tools/list result. Use them only when the actual connection exposes a matching tool and contract; do not invent absent tools or guess endpoints.
 
 - Start with `procurement_guide`, then `search_products` / `product_detail`.
 - For customer data, use the host's Connect / OAuth flow. The buyer signs into Vantrecomb and approves only the scopes needed. Never ask for a password or token in chat.
 - Use `list_quotes` / `quote_detail`, `list_rfqs` / `rfq_detail`, `list_orders` / `order_detail`, `list_shipments` / `shipment_detail`, `customer_profile`, and `list_documents` for buyer-owned records.
-- Before `create_rfq_session`, `submit_rfq`, `submit_quote_folder`, `respond_quote`, `update_profile`, or `document_link`, summarize the exact operation and payload and obtain explicit buyer approval. Only then set `buyer_confirmed=true` and a unique `idempotency_key`.
+- Before `create_rfq_session`, `submit_rfq`, `submit_quote_folder`, `respond_quote`, `update_profile`, or `document_link`, summarize the exact operation and payload and obtain explicit buyer approval. Only then set `buyer_confirmed=true` and a unique `idempotency_key` if those fields are supported by the live tool schema; otherwise follow its actual confirmation and idempotency contract.
 - `respond_quote` accepts only `accept`, `request-revision`, or `messages`. A message is recorded, not a sales response. Profile edits change default contact/address details, not an existing order.
 - On missing scope, reauthorize only the required scope. On expired/revoked authorization, stop writes and reconnect. Do not use the local Python client to bypass cloud authentication.
 
@@ -27,6 +27,8 @@ Product search/detail are the only catalog endpoints. Materials, crafts, capabil
 There is no customer-upload API. Drawings, payment evidence and other buyer files must be emailed by the buyer to `sales_contact.email` from the quote. Check sales email first for documents; only if missing, list documents and request an authorized download link. Never claim an order cancellation, address change or after-sales request is completed until sales confirms it.
 
 ## Local skill (Python 3.10+, standard library only)
+
+Use this section only for a separately requested local workflow with independently verified server/client configuration. It is not a fallback for unavailable cloud tools, failed OAuth, missing scope or denied account access. The bundled client's historical routes and lifetimes do not prove current deployment support.
 
 Use `scripts/vantrecomb_api.py` for all API calls; no pip packages, curl or ERP/browser/private management endpoints are needed. An optional `.env` beside `SKILL.md` configures API origin/client ID; process environment wins. Real `.env` and sessions must never be committed or included in a plugin archive.
 
