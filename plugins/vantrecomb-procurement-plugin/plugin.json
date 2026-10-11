@@ -15,7 +15,7 @@
         ],
         "developerName": "ww xx",
         "displayName": "VANTRE Procurement",
-        "longDescription": "Discover structured product facts, prepare buyer-approved RFQs, and access your authorized quotes, orders, shipments and documents. Account access uses Vantrecomb OAuth with least-privilege scopes. The MCP service runs in the existing Vantrecomb B2B backend.",
+        "longDescription": "Discover structured product facts, prepare buyer-approved RFQs, and access your authorized quotes, orders, shipments and documents. Account access uses Vantrecomb OAuth with least-privilege scopes. The MCP integration is implemented within the existing Vantrecomb B2B backend architecture; deployment and account connection are still required.",
         "shortDescription": "Source products with VANTRE",
         "logo": "./assets/vantre-logo.svg",
         "composerIcon": "./assets/vantre-logo.svg",

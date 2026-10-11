@@ -2,18 +2,21 @@
 
 既有私人插件为 `plugins_6ac5698a6b9c8191b317d7b2e5d8bcfe`，包名 `vantrecomb-procurement-plugin`。本次源基线为账号 release `pluginrel_6ac56e1a3ff881919abd6064bb670336`（0.1.1），通过只读 get_plugin_files 取得完整运行文件，保存在已有专用仓库的 `plugins/vantrecomb-procurement-plugin/`，版本适配为 0.1.2。未调用 create_plugin，不创建同名重复插件；父任务只更新原插件。
 
-## 源归属与未验证能力
+## 源归属、已合并契约与接入状态
 
 本仓原 main `5a4c26686950f504178c553d36c7eb33fa909985` 只有旧 Python 技能，没有插件目录；其原技能/脚本/引用保持不变。新目录承接已保存账号包的实际源码，不重新实现包内 Python 客户端，不复制旧技能作为另一安装包。账号包的品牌、defaultPrompt 数组和本地 OAuth 辅助文件保留。
 
-服务器应属于已有 `hx123321/vantreCombB2B`，本云核对最新 main `4a421c904e701d277a39cf29bf268d6d51b092b9`：
+服务器来源已由网站 [PR #279](https://github.com/hx123321/vantreCombB2B/pull/279) 明确：网站 main `b86e85cee8d92cb7dfb6180e353b08f2b344e087` 已合并已审 head `f727519f353120c696b5897ceb87c47d36426165`。本次只读核对该 main 的 [integration contract](https://github.com/hx123321/vantreCombB2B/blob/b86e85cee8d92cb7dfb6180e353b08f2b344e087/docs/ops/procurement-mcp-integration.md) 与 `backend/cmd/server/mcp_procurement.go`；未修改网站工作区。
 
-- `backend/cmd/server/oauth_authorization.go` 的 defaultOAuthClients 是预注册客户端 map；默认示例 client/callback 不能用于本插件。
-- `oauth_authorization.go`、`oauth_device.go` 和 `openapi_discovery.go` 提供 PKCE/AuthCode、Device 和 OAuth metadata（token auth none）；资源 metadata 指向 /api/v1/ai/me，未描述 /mcp。未找到 MCP、DCR 注册实现或 registration_endpoint。
-- `oauth_origin.go` 支持 API 与浏览器域分离；旧默认把浏览器入口指向 API 域，不能据此宣称真实网站登录可用。
-- 本云对 `https://api.vantrecomb.com/mcp` 和两个 well-known metadata 的无凭据严格 TLS 请求均返回 envoy 503（remote connection failure），不能证明源站部署状态。
+此前 `4a421c904e701d277a39cf29bf268d6d51b092b9` 未找到 MCP/DCR、resource 仅指向 `/api/v1/ai/me` 的观察属于旧基线。此前对 `api.vantrecomb.com` 的 envoy 503 也是旧环境结果，不能用于判断这次 TEST。PR #279 现已实现 `/mcp`、专用 resource metadata、可选 DCR、OAuth resource 绑定与固定 19 工具，复用已有业务 handler；不是任意 REST 自动发现。
 
-因此采购 MCP endpoint、DCR、线上 OAuth 契约、账户工具发现均未独立验证。包内固定工具说明来自既有 release，不是本次 tools/list 结果。父任务须定位实际运行 MCP 的源码/部署版本并验证 metadata；不能把技能或包声明当已部署能力。本次不改独立站后端、权限、客户端、部署或 FSC。
+本次 TEST API 为 `https://test-api.vantrecomb.com`，网站为 `https://test.vantrecomb.com`，两 origin 已由父任务只读核实；不能替换为 `https://api.vantrecomb.com`。服务仍未部署，DCR 启用尚未取得用户批准，真实云 app ID 尚未取得。源码合并及服务 CI/审核通过不等于线上 tools/list、OAuth 登录或双端接入成功。
+
+六写工具全部必需 `idempotency_key`。`create_rfq_session`、`update_profile`、`document_link` 和 `respond_quote/messages` 无必需 `buyer_confirmed`；`submit_rfq`、`submit_quote_folder`、`respond_quote/accept` 与 `request-revision` 必需 `buyer_confirmed=true`。仍有效的同目标/动作/数据明确授权可沿用，保留 scope、归属、业务校验、CAPTCHA、幂等及必要审批。
+
+`document_link` 返回 `delivery_mode=caller_ip_bound`；临时 API URL 绑定调用 IP，不能承诺给买家跨浏览器使用或直接跟随。向买家提供实际返回的 `website_download_entry`，由买家在网站登录后按已有受控流程下载；MCP 不取回、附上或流式传输 bytes，不得声称文件已取得。
+
+本次仅同步采购包文档、技能说明和两个 manifest longDescription；原 standalone 技能、ERP、后端、权限、客户端、部署与 FSC 均未修改。
 
 ## 源码适配及最终包
 
@@ -33,13 +36,13 @@ python3 scripts/package_plugin.py --app-id "$PROCUREMENT_CLOUD_APP_ID" --output 
 
 | 项目 | 当前依据 / 需确认 |
 | --- | --- |
-| MCP URL | 既有 release 声明 https://api.vantrecomb.com/mcp；实际可达和工具待核 |
-| issuer / authorize / token | 从实际 metadata 读取；浏览器入口须跳转真实网站登录 |
-| client registration | DCR 未证实；不先选择 DCR。若预注册，取得管理页精确回调并经批准登记 public client |
-| OAuth | 现有源码 PKCE S256、AuthCode；云 MCP 实际契约须重新核 |
+| MCP URL | 合并源码部署后预期 https://test-api.vantrecomb.com/mcp；当前未部署 |
+| issuer / authorize / token | 源配置 API=https://test-api.vantrecomb.com、Browser=https://test.vantrecomb.com；部署后核实际 metadata 和网站登录 |
+| client registration | DCR 已实现，默认禁用；启用仍待用户明确批准，不执行注册或猜测 clientId/回调 |
+| OAuth | 已合并源码：AuthCode + PKCE S256/auth none、精确 API-origin /mcp resource、15分钟 token、无 refresh；实际连接待验收 |
 | scopes | 仅当前任务需要的 me:quotes:read 等；不请求全部八项 |
 | app binding | 云连接真实 ID；不借用其他账户或示例客户端 |
 
 父任务更新原私人插件时必须移除旧 release 的 `mcp.json` / `.mcp.json`，仅上传新文件而保留旧文件不会完成路由迁移。保留插件 ID、私人可见性、旧条目和技能。随后由用户自己登录/同意，分别在网页和桌面验证工具发现、公开 guide、获授权只读记录及 401/403 边界；不能为验收创建 RFQ、发送邮件、响应报价或改资料。
 
-本次验证范围：manifest schema、入口同步、技能引用、打包器语法与无 ID/占位 ID 阻塞、旧技能未改、git diff。真实 ID 最终打包、云 importer、OAuth、账户 scope/归属和双端实用均待父任务验收；未合并、部署或更新账号插件。
+本次验证范围：manifest schema、入口同步、技能引用、打包器语法与无 ID/占位 ID 阻塞、旧技能未改、git diff。部署、DCR 启用批准、真实 ID 最终打包、云 importer、OAuth、账户 scope/归属和双端实用均待父任务验收；未合并、部署或更新账号插件。
