@@ -1,0 +1,26 @@
+{
+  "name": "vantrecomb-procurement-plugin",
+  "version": "0.1.2",
+  "description": "Buyer-controlled Vantrecomb procurement through the existing B2B server's MCP and OAuth integration.",
+  "author": {
+    "email": "vantrecomb@gmail.com",
+    "name": "ww xx"
+  },
+  "skills": "./skills",
+  "apps": "./.app.json",
+  "interface": {
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Help me source a custom comb project through VANTRE.",
+      "Check my authorized quotation and shipment status."
+    ],
+    "developerName": "ww xx",
+    "displayName": "VANTRE Procurement",
+    "longDescription": "Discover structured product facts, prepare buyer-approved RFQs, and access your authorized quotes, orders, shipments and documents. Account access uses Vantrecomb OAuth with least-privilege scopes. The MCP service runs in the existing Vantrecomb B2B backend.",
+    "shortDescription": "Source products with VANTRE",
+    "logo": "./assets/vantre-logo.svg",
+    "composerIcon": "./assets/vantre-logo.svg",
+    "logoDark": "./assets/vantre-logo-dark.svg",
+    "composerIconDark": "./assets/vantre-logo-dark.svg"
+  }
+}
