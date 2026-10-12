@@ -26,21 +26,22 @@
 
 正常网站权限不等于 AI 有任意写业务授权，每个动作仍按用户有效授权、所需确认及原业务规则；插件 API scopes 保持各自限制。原独立上下文 SSO 指导与动态工具发现保持。源码默认关闭/空名单与已配置 TEST 状态区分；不通过技能修改部署配置或授予 scope。
 
-## 本次 GPT 3D 文档候选
+## 本次 GPT 3D 源码已核对的候选
 
-核心网站/3D WIP 由父任务协调，最终核心 PR 尚未交付。本 Draft 在 packaged SKILL 中加入入口，并新增 `references/gpt-design-workflow.md`。它按父任务候选整理，不声称已审、已合并、已部署或真实宿主可用：
+已读取网站 [Draft #287](https://github.com/hx123321/vantreCombB2B/pull/287)，head `601162ba431f1bfddf93efbce24b0b84fdfb73b9`，实际 private_design_tools/保存/Logo/RFQ handlers、原网站预览宿主页及 [契约文档](https://github.com/hx123321/vantreCombB2B/blob/601162ba431f1bfddf93efbce24b0b84fdfb73b9/docs/design/gpt-private-design-contract.md)；读取其依赖 Product3DPipeline [Draft #67](https://github.com/hx123321/Product3DPipeline/pull/67)，head `c92f18749a3395d2aac107a42441672edddc694e` 的源码 worker 契约。两 PR 仍待独审/合并，不声明已部署/已验。
 
-- 先工具/Logo上传/已有私有预览链接，后续 MCP Apps UI 才提供聊天内嵌控件；链接不自动成为 iframe。
-- `design_capabilities(query.sku)` 应直接返回官方客户 JSON 规则、完整默认 v2 snapshot 和中文字段类型/范围说明；技能由响应生成解释，不复制第二套参数 JSON/能力表。要求完整当前客户高级参数覆盖，不仅基础；ERP审核/内部配置及客户禁用矢量/浮雕上传不开放。
-- `one_sentence` / `guided` 两模式共享完整参数能力；同一 design ID 重复修改，客户网页改动后先读当前版本。create/update 使用完整 snapshot、sku、requirements、mode 与实际 schema；update 用观察到的 base_version，不猜初始版本。
-- `422 fields` 按实际字段反馈纠正；`409 design_version_conflict` 读最新再合并授权 delta，冲突同字段问客户，不强制覆盖或循环重试。
-- Logo 候选必填 design_id，官方 openai/fileParams 附件能力/HTTPS精确来源待核；无附件时用工具实际返回的同设计网页上传入口，随后读回。不能泛化任意URL，不能声称真实聊天附件上传已验。
-- preview_url 对应设计/版本的私有原预览页。保存/预览不自动询价、不覆盖ERP方案或旧报价；submit_design_rfq 必须指定确切设计版本、数量/联系数据和用户明确确认，沿用现报价业务。
+- capabilities 从 exact ERP绑定与正式包取得 `snapshot`、TypeScript投影的 `snapshot_schema`、中文 `field_table`、recipe/parameterShape/rules、`packaging_rules` 和 `customer_upload_policy`。字段/范围不复制第二套表，空数组/可选/全部客户高级参数均保留。ERP审核/开发检查器、客户矢量/浮雕上传不开放，factory-review意图不当成批准。
+- create/update `payload` 均必填 sku/base_version/完整snapshot/原requirements/mode；create base_version=0，update当前版本，top-level id选择旧设计，SKU/template不能移动。list仅摘要，历史 query.version 仅read。所有写必填幂等key；同数据重试保留key，改数据换key，409幂等冲突与版本冲突区分，422按实际fields纠正，不用默认替换非法值。
+- Logo 必填 top-level design_id 和 idempotency_key，官方 file 可选，内必填 download_url/file_id，mime_type/file_name可选。无附件/入口未启用返回 upload_mode=website 与同设计 website_upload_entry（edit）；不是成功上传。静态 PNG/JPEG/WebP、512KiB/2048边长与decoded检查按实际policy；private canonical resource需放到合法完整snapshot并另保存。临时URL/fileID不存入设计，无泛化任意URL。精确HTTPS443 hostname名单默认空，仍未批准/真实宿主验收。
+- 保存返回私有账户 preview_url=/designs/preview?design_id=…&version=…，历史版本固定；网页普通session与资产归属控制，原Studio INIT恢复，新网页保存产生私有版本供AI读取，第二设备须同账户认证。链接不自动为聊天iframe，聊天MCP Apps UI后补；保存/预览不自动询价、不覆盖ERP/旧报价。
+- submit_design_rfq 使用read scope加buyer_confirmed=true、idempotency_key与正version/quantity/对应用户contact.email；原报价事务冻结设计版本/原要求/图像，保留私有草稿及普通报价夹。不增RFQ write scope、不把read scope当成无确认写授权。
 
-`me:designs:read` / `me:designs:write` 与 TEST 设计开关仍待父任务具体批准；旧 grant 不自动获得，真实 consent 由用户完成。文件参数注解、允许来源、工具参数/结果名、完整参数覆盖和版本语义须在最终核心代码/schema 下核对。本文没有猜测实际附件、URL来源或核心部署SHA。
+浏览器正向仍未通过：原customer Studio CSP阻止Draco Wasm与blob纹理，READY/INIT/customized ACK/加载进度不等于RENDERED。`PROCUREMENT_DESIGN_STUDIO_CSP_ENABLED` 默认false；候选仅 `/3d/studio/customer/index.html` 增 script wasm-unsafe-eval 和 connect blob:，保留其它指令与精确origin/framing；需核清后具体批准与重新正向验证，不由技能打开、不写成已验。
+
+`me:designs:read` / `me:designs:write`、`PROCUREMENT_DESIGNS_ENABLED`、Studio CSP及`PROCUREMENT_DESIGN_ATTACHMENT_HOSTS`精确来源仍待具体批准。旧grant不自动获得，真实consent由用户完成。ERP授权页独立修复不属于本插件文档变更，不能借此扩大范围。
 
 ## 父任务最终核对与验证边界
 
-最终核心 PR 到达后，以真实工具 schema、权威 JSON/验证器与机制文档核对候选，再决定必要版本更新和包准备。分别记录代码合并、TEST启用部署、宿主工具可见、真实附件/预览/UI验收，不把某一成功扩大为其余成功。账号更新仍使用同一插件/App、原 USER / PRIVATE 范围，审核前不得上传；届时重新读取当前 release，不能只复用此处观察值。
+本次已按两个候选真实 schema/契约核对。独审修正及最终合并 head 返回后再复核差异，具体feature/scopes/CSP/附件host批准后再决定必要版本和包；当前不发布插件。分别记录代码合并、TEST启用部署、宿主工具可见、真实附件/预览/UI验收，不把某一成功扩大为其余成功。账号更新仍使用同一插件/App、原 USER / PRIVATE 范围，审核前不得上传；届时重新读取当前 release，不能只复用此处观察值。
 
 本 Draft 只做文档内容/引用及差异范围检查，不写测试框架、复杂流程、逐文件匹配/hash清单；不重复其他项目测试，不调用设计写/上传/询价，不打包最终发布。Git 提交保留源码与技能同仓，原脚本/品牌/绑定/独立技能不变。
