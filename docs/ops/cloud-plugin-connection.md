@@ -1,47 +1,54 @@
-# VANTRE Procurement 已验证云连接与包交付
+# VANTRE Procurement 续期与网页交接包
 
-既有私人技能插件为 `plugins_6ac5698a6b9c8191b317d7b2e5d8bcfe`，包名 `vantrecomb-procurement-plugin`。源基线为账号 release `pluginrel_6ac56e1a3ff881919abd6064bb670336`（0.1.1），来自只读 get_plugin_files，本包版本为 0.1.2。保留发布者、品牌、defaultPrompt 数组、技能及本地辅助文件；父任务审核后更新原插件，不创建同名插件。
+本次只同步既有插件的技能/引用文档与版本，不新增业务功能。采购源码基线为 main `c4c5cfa5c0b30c57e9365d1ad5671f3e690b4800`；网站能力以已合并 main [2c02a645032754e0d690ae56ad6f8e4daa09fe58](https://github.com/hx123321/vantreCombB2B/commit/2c02a645032754e0d690ae56ad6f8e4daa09fe58) 为准，包含 refresh（#285，`c3573e6e4018353f45bc165e5a0781866b94513a`）与隔离网页 SSO（#284，审核 head `df50f47d4809770e959664dfc716217d0dffaf0f`）。
 
-## 当前 TEST 与验证边界
+## 本次目标与身份
 
-网站 [PR #279](https://github.com/hx123321/vantreCombB2B/pull/279) 的采购 MCP 已合并；原集成契约来自 [main b86e85ce](https://github.com/hx123321/vantreCombB2B/blob/b86e85cee8d92cb7dfb6180e353b08f2b344e087/docs/ops/procurement-mcp-integration.md)。固定 19 个工具映射已有 handler，不是任意 REST 自动发现。此前未找到实现/未部署/DCR 未批准/app ID 缺失的记录已被下述实际接入证据取代。
-
-父任务确认当前实际 TEST 版本为 `ae1ff0bdbc906b8d1d21f0fed0ed4b53318c23ff`，API 为 `https://test-api.vantrecomb.com`，网站为 `https://test.vantrecomb.com`；`api.vantrecomb.com` 不是此次 TEST。包含已批准 DCR、PR #280 安全诊断及 PR #281 的 AuthCode+refresh 请求协商为 AuthCode-only。没有实现或验收刷新令牌。
-
-父任务已创建并授权 VANTRE Procurement TEST 云连接，并通过其原生 `customer_profile` 成功读取合成 TEST 注册账户。此证据说明真实 OAuth 资料读取已通过；不是本云再次进行的业务调用，也不能推断其它工具、写业务、撤销/过期、文件下载、完整业务链路或所有宿主均通过。其它只读业务检查仍由父任务进行。
-
-| 身份 | 父任务已核实值 |
+| 字段 | 已读取当前值 |
 | --- | --- |
-| 新 App-backed 插件 ID | `plugin_asdk_app_6acc06a725048191bbf860d0b7a72642` |
-| 观察到的 release | `PluginRelease_aa9a077898988191a4eaa221e67652c2` |
-| .app.json 的 mapping key | `dev-6acc06a725048191bbf860d0b7a72642` |
+| 目标插件 ID | `plugin_asdk_app_6acc06a725048191bbf860d0b7a72642` |
+| 已观察 release guard | `pluginrel_6acc09cbf44081918621572c690ccc61` |
+| 已观察版本 / 更新包版本 | 1.0.1 / 1.0.2 |
+| 原 scope / 可见性 | USER / PRIVATE |
+| 包名及 .app.json mapping key | `dev-6acc06a725048191bbf860d0b7a72642` |
 | 实际 App ID | `asdk_app_6acc06a725048191bbf860d0b7a72642` |
 
-插件 ID 与 .app.json 内的 App ID 不同，不能互换。采购源码 .app.json 原样使用父任务提供的真实 mapping；根 `extensions.com.openai.apps` 与兼容 `apps` 均指向 `./.app.json`。
+本次只准备此 App-backed 私有插件的技能 overlay。其完整原兼容 manifest 位于 `overlays/vantrecomb-test/.codex-plugin/plugin.json`，仅提升版本，保留 `apps`、`skills`、App developer、VANTRE Procurement TEST、Other、空 capabilities、null defaultPrompt 及其它原字段。插件/App ID 不可互换。上传时不写 .app.json，不改 App-owned MCP/连接、展示、权限、受众或私人范围，不删除文件。
 
-## 两个审核包
+`plugins/vantrecomb-procurement-plugin/` 继续与技能共处本仓；可复用完整源包版本同步为 0.1.3，保留其原身份、品牌、默认提示和真实 App 绑定。该完整包不用于覆盖目标 App 插件，也不授权更新另一既有独立技能插件 `plugins_6ac5698a6b9c8191b317d7b2e5d8bcfe`。仓库根部独立 SKILL.md、references、agents 和本地客户端保持原样。
+
+## 能力与线上状态
+
+TEST API 是 `https://test-api.vantrecomb.com`，网站是 `https://test.vantrecomb.com`；`api.vantrecomb.com` 不是此次 TEST。此前真实云连接的资料读取证据仅覆盖合成注册账户，不能推导新 refresh、SSO 或完整业务均已验收。
+
+代码合并与部署/启用分开：本任务未部署、未设置 TEST 配置、未生成真实 OAuth grant。父任务负责最终部署状态、代理/安全配置与真实宿主验收；用户随后重新激活并通过真实 OAuth 同意。技能依据实际工具、schema、采购 guide 与 metadata 动态发现，不把所有业务接口写成必然可用清单。
+
+### 自动续期
+
+[真实 refresh 说明](https://github.com/hx123321/vantreCombB2B/blob/2c02a645032754e0d690ae56ad6f8e4daa09fe58/docs/ops/procurement-oauth-refresh.md)：access 为 15 分钟；用户明确勾选“保持连接”并同意后，宿主串行刷新、安全保存轮换后的最新凭据。每次成功 refresh 续 30 天闲置，活跃无固定总期限，可在 API Tokens 页面撤销，正常数据库支持的服务重启保留状态。
+
+旧 client/grant 不自动升级，需重新同意；宿主缓存旧 authcode-only metadata 或不能重新启动同意时，可能需移除并重建连接。强制终止、响应丢失或旧 refresh 重放可导致需要重连。不得教 AI 提取、记录、手动兑换令牌或另建刷新循环，不在包中放用户凭据。
+
+### 网页 SSO 等待最终官网接口
+
+已合并的初版 [网页实现](https://github.com/hx123321/vantreCombB2B/blob/2c02a645032754e0d690ae56ad6f8e4daa09fe58/docs/design/procurement-browser-sso.md) 只支持独立只读采购页，不能以委托身份进入完整 `/track/*`、`/account/*`。用户已明确需要直接打开现有官网页面；父任务正在另一个 PR 补官网委托认证。因此初版只读专页不是最终产品方向，也不作为本次最终发布包。SSO 使用章节须等最终真实代码/schema 后定稿，不推测跳转、参数或权限。
+
+当前默认关闭不变；TEST 安全配置与真实用户 `me:web` 新同意未完成。精确客户端名单、API/browser origins、代理、宿主浏览器能力、现账户业务 scopes 等仍由父任务核实。普通登录、插件授权与委托凭据必须保持隔离，不提取令牌、不嵌入长令牌 URL、不覆盖普通登录、不用其它账户回落，也不能以网页 scope 扩大业务权限。
+
+## 打包与父任务更新
+
+以下为最终 SSO 定稿后的既有打包命令；本 Draft 不生成可发布包。结构校验可用临时 archive，不能用于账号更新：
 
 ```bash
-python3 scripts/package_plugin.py --output .tmp/vantrecomb-procurement-cloud-bound-0.1.2.zip --app-overlay-output .tmp/vantrecomb-test-skills-overlay-1.0.1.zip
+python3 scripts/package_plugin.py --output /tmp/vantrecomb-procurement-cloud-bound-0.1.3.zip --app-overlay-output /tmp/vantrecomb-test-skills-overlay-1.0.2.zip
 ```
 
-完整包给既有技能插件使用：单根 `vantrecomb-procurement-plugin/`，含根 manifest、兼容 manifest、真实 .app.json、技能/支持文件及原品牌资源。没有直接 mcp.json/.mcp.json、文档、打包器、原独立技能、.env 或本地会话。缺失/空/占位绑定仍拒绝打包；ID 语法不证明注册状态，真实绑定的证据来自父任务实际读取。无逐文件匹配/哈希机制。
+完整源包单根 `vantrecomb-procurement-plugin/`，有 portable/兼容 manifests、真实 App 绑定、技能及品牌资源。目标更新包单根 `dev-6acc06a725048191bbf860d0b7a72642/`，仅有原兼容 manifest 与完整原技能/支持文件，不含 root manifest、.app.json、MCP 配置、品牌资源或凭据。它是定向 overlay，不能单独安装或 create_plugin。ZIP 不入 Git；可从本次精确 head 重建。
 
-最小 overlay 给上述新 App-backed 插件补技能：单根 `dev-6acc06a725048191bbf860d0b7a72642/`，只含完整的原兼容 manifest（增加 `skills: "./skills"`、版本 1.0.0 → 1.0.1）与同一套技能/支持文件。兼容 manifest 源码位于 `overlays/vantrecomb-test/.codex-plugin/plugin.json`，保留 App developer、VANTRE Procurement TEST、Other、空 capabilities、null defaultPrompt 及其它所有原字段。沿用受支持 legacy 入口，不增加会遮蔽其配置的根 manifest。
+父任务先合并/审核最终官网委托认证，并补齐本 Draft 的 SSO 使用章节、复核真实 schema，再重建 release-ready overlay。版本 1.0.2 / 0.1.3 当前仅为准备值，不表示已保存或可发布。然后用 get_plugin_files 重新读取目标当前 release。若 release 变化，先重新核对/协调内容，再以新观察值作 `expected_release_id` 更新同一 `plugin_id`，不直接复用过时 guard。仅上传 App overlay，`delete_paths` 留空，保留所有未上传 App-owned 文件。保存后回读 manifest/技能及真实 .app.json，确认版本与原身份/连接/范围保留。用户重新激活不等同于获得 refresh 或 `me:web`，仍需授权页新同意。
 
-Overlay 不含 .app.json、root plugin.json、MCP 配置、品牌资源或新的身份/展示设置；通过更新接口保留既有 App-owned 文件与真实连接。它是定向更新补丁，不能单独安装、不能 create_plugin，也不要求重新创建连接或再次授权。
+## 验证范围
 
-## 父任务审核与更新
+只做文档契约核对、manifest/引用、身份与 App 绑定保留、既有打包器和 ZIP 结构校验。没有逐文件 hash/匹配流程、复杂验证框架、真实 OAuth、业务写入或真实账户读取。既有 read 与 write 仍按现账户权限、用户授权、scope/归属、确认、幂等、业务验证和 CAPTCHA 执行；不额外封禁授权写入，也不为 SSO 扩权限。
 
-1. 复核源码/两个 ZIP，并用 get_plugin_files 重新观察两个目标插件的最新 release；若 release 已变化，先核对再更新，不能只替换 expected_release_id。
-2. 完整包更新 `plugins_6ac5698a6b9c8191b317d7b2e5d8bcfe`，须显式 `delete_paths=["mcp.json",".mcp.json"]`，移除旧直接路由。部分上传默认保留未提供文件，省略这两个删除参数会留下重复路由。
-3. 最小 overlay 更新 `plugin_asdk_app_6acc06a725048191bbf860d0b7a72642`；以最新已观察 release 作 guard，`delete_paths` 留空，不删除或改写 .app.json/MCP/连接。保留 App-owned 描述、展示、身份、受众、权限和私人可见性。
-4. 更新后回读技能文件与 manifest；既有技能插件确认旧 MCP 文件已删除，新 App 插件确认 .app.json 和 App-owned 值保留。检查技能可加载及实际宿主工具；不以保存成功宣称全业务验收，不让用户重复创建或授权。
-
-## 业务规则保持
-
-六写工具全部必需 `idempotency_key`。`create_rfq_session`、`update_profile`、`document_link` 和 `respond_quote/messages` 无必需 `buyer_confirmed`；`submit_rfq`、`submit_quote_folder`、`respond_quote/accept` 与 `request-revision` 必需 `buyer_confirmed=true`。有效的同目标/动作/数据明确授权可沿用；scope、归属、业务校验、CAPTCHA、幂等及必要审批均保留。
-
-`document_link` 返回 `delivery_mode=caller_ip_bound`；临时 URL 绑定调用 IP。给买家实际返回的 `website_download_entry`，不直接跟随或承诺跨浏览器下载；MCP 不取回、附上或流式传输文件 bytes。
-
-本仓原 standalone 技能/脚本/引用/agents 保持不变；ERP、后端、FSC、OAuth grant、DCR/客户端配置均未修改。本任务只提交源码和两个审核包，不安装、更新账号插件、合并、部署或公开发布。最小验证包括 manifest/入口/引用、真实绑定、overlay 配置保留及 ZIP 结构，不重复跑其它项目测试。
+本任务返回独立 Draft PR、精确 head 和包源码/重建命令。最终 SSO 使用说明及可发布更新包等待官网后续 PR，未自行合并、账号更新、发布或部署。
