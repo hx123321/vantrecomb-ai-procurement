@@ -57,3 +57,11 @@ python scripts/vantrecomb_api.py request POST /api/v1/ai/me/quotes/Q123/messages
 ```
 
 The wrapper uses Python's standard library, sends all requests to `https://api.vantrecomb.com`, refuses absolute URLs or non-AI paths, never persists plaintext tokens, and enforces buyer confirmation for high-risk writes.
+
+## Design preview and response language
+
+Answer in the language the buyer uses in the conversation. Parameter descriptions are English; keep all parameter keys, allowed values and the complete advanced StudioSnapshot schema unchanged.
+
+Save multi-turn edits as private design versions without rebuilding geometry. Request a preview only when the buyer asks to view the design. Wait for that exact version's geometry state to be `succeeded` before describing it as rendered. Reuse unchanged geometry and queued/running tasks. Explain queue position and the existing cooldown's retry delay; do not repeatedly resubmit after failure, cancellation or timeout. Retry only after an explicit request. Keep the saved design and website preview link. Preview never creates an RFQ.
+
+Geometry cache GLBs are shared public artifacts. Logo artwork, full snapshots and account records retain their existing ownership checks; credentials never appear in artifact URLs.
