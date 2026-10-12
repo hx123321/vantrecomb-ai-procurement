@@ -1,10 +1,10 @@
 # Vantrecomb AI procurement workflow
 
-The current source contract is [website PR #279](https://github.com/hx123321/vantreCombB2B/pull/279), merged at main b86e85cee8d92cb7dfb6180e353b08f2b344e087 from reviewed head f727519f353120c696b5897ceb87c47d36426165; see its [integration contract](https://github.com/hx123321/vantreCombB2B/blob/b86e85cee8d92cb7dfb6180e353b08f2b344e087/docs/ops/procurement-mcp-integration.md). It implements a fixed 19-tool mapping to existing business handlers, not automatic discovery of arbitrary REST operations. The earlier baseline with no MCP/DCR implementation is superseded. The parent reports TEST deployed at ae1ff0bdbc906b8d1d21f0fed0ed4b53318c23ff with approved DCR, PR #280 safety diagnostics and PR #281 negotiating AuthCode+refresh requests to AuthCode-only. The real cloud connection has been created and authorized; native customer_profile successfully read a synthetic registered TEST account. Other business checks remain in progress; neither refresh-token use nor the full business workflow has been verified. For cloud use, inspect actual connected tools, schemas and verified metadata before calling anything; source implementation is not a live tools/list result. If no verified connection or matching tool exists, report the missing capability and wait for the host connection flow; do not guess a tool or call underlying HTTP routes as a substitute.
+The reviewed source contract is website main [b91ff92416b74f2ab9649cbdbff5535dab784f8e](https://github.com/hx123321/vantreCombB2B/commit/b91ff92416b74f2ab9649cbdbff5535dab784f8e), containing OAuth refresh and the normal-website login handoff from merged [PR #286](https://github.com/hx123321/vantreCombB2B/pull/286), reviewed head `2a824c96eb63799c8988a9ff116958e84289328e`. The parent is building/deploying; actual TEST deployed SHA/configuration, real host compatibility and user consent have not yet been confirmed. MCP maps selected tools to existing handlers; it does not automatically expose arbitrary REST operations. Inspect actual exposed tools, schemas and metadata for each request; merged source and previous profile-read evidence do not establish newly deployed availability or permission to bypass MCP with HTTP routes.
 
 This task's TEST API is `https://test-api.vantrecomb.com` and TEST website is `https://test.vantrecomb.com`; the parent verified both origins read-only. `https://api.vantrecomb.com` is a historical package origin, not this TEST server. Use only the verified provider connection and read its procurement guide when available. Underlying REST routes and production copy-page URLs below describe business mappings; they are not permission to bypass MCP or substitute the historical API origin. A separately requested local workflow must independently verify its server/client configuration.
 
-Use `/api/v1/ai/catalog/*` only for products: `GET /api/v1/ai/catalog/products` to search, `GET /api/v1/ai/catalog/products/{sku}` for one product (the path identifier accepts a `sku`, `style_id` or `slug`). A product card carries structured fields only — no marketing HTML and no ERP internal fields — and `three_d` exposes just `enabled` and `match_mode`. Product `detail_url` values are full `https://www.vantrecomb.com/products/styles/{slug}` URLs (en no prefix; ar/de/es/fr/ja/pt-BR/ru/zh-CN/zh-TW prefix the path). Do not use browser, ERP, or `/api/v1/public/*` endpoints.
+Use `/api/v1/ai/catalog/*` only for products: `GET /api/v1/ai/catalog/products` to search, `GET /api/v1/ai/catalog/products/{sku}` for one product (the path identifier accepts a `sku`, `style_id` or `slug`). A product card carries structured fields only — no marketing HTML and no ERP internal fields — and `three_d` exposes just `enabled` and `match_mode`. Product `detail_url` values are full `https://www.vantrecomb.com/products/styles/{slug}` URLs (en no prefix; ar/de/es/fr/ja/pt-BR/ru/zh-CN/zh-TW prefix the path). Do not use ERP, browser/private routes, or `/api/v1/public/*` endpoints as catalog APIs.
 
 Blog posts, FAQs, and site pages have no catalog endpoints; find them through site search and `llms.txt`.
 
@@ -33,32 +33,60 @@ Use `PATCH /api/v1/ai/me/profile` only for default contact/address details. The 
 
 Cloud plugins use only the verified host-managed OAuth connection and its actual exposed tools. Local clients are for separately requested local workflows with independently verified server/client configuration; their Device Authorization implementation does not establish current server support. A failed cloud connection, 401/403, missing scope or denied ownership must not trigger local API, manual-token or browser-session fallback. All authorized local POST/PATCH commands still require buyer confirmation and an idempotency key.
 
-## Scope and authorization matrix (public vs protected)
+## Dynamic capability and scope discovery
 
-Public capabilities (no token, no scope; protected by rate limiting, CAPTCHA when enabled, and Idempotency-Key):
-
-- `GET /api/v1/ai/catalog/products` (search) and `GET /api/v1/ai/catalog/products/{sku}` (detail)
-- `GET /api/v1/ai/guide`
-- `POST /api/v1/ai/rfq-sessions`, `POST /api/v1/ai/rfqs`, `POST /api/v1/ai/quote-folder/submit`
-- `POST /api/v1/ai/rfqs/{rfq_id}/send-verification`, `POST /api/v1/ai/rfqs/{rfq_id}/verify`, `GET /api/v1/ai/rfqs/{rfq_id}` (temporary `X-RFQ-Token` 30 min)
-- Discovery: `/.well-known/api-catalog`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource`, `/api/openapi.json`
-
-Historical protected capability matrix (confirm against the live contract; cloud authentication is managed by the host, with granted scope and account ownership enforced by the provider). Never obtain or supply browser `X-Account-Token` headers to bypass OAuth scope, and never extract credentials from a browser session:
-
-- `ai:rfq:read` → `GET /api/v1/ai/me/rfqs`, `GET /api/v1/ai/me/rfqs/{rfq_id}`
-- `me:profile:read` → `GET /api/v1/ai/me/profile`, `GET /api/v1/ai/me/organizations`
-- `me:profile:write` → `PATCH /api/v1/ai/me/profile`
-- `me:quotes:read` → `GET /api/v1/ai/me/quotes`, `GET /api/v1/ai/me/quotes/{quote_id}`
-- `me:quotes:respond` → `POST /api/v1/ai/me/quotes/{quote_id}/accept`, `.../request-revision`, `.../messages`
-- `me:files:download` → `GET /api/v1/ai/me/files`, `POST /api/v1/ai/me/files/{document_id}/download-link`
-- `me:orders:read` → `GET /api/v1/ai/me/orders`, `GET /api/v1/ai/me/orders/{order_id}`
-- `me:shipments:read` → `GET /api/v1/ai/me/shipments`, `GET /api/v1/ai/me/shipments/{shipment_id}`
-
-Tokens can combine scopes; a token with only one scope must be rejected on other protected endpoints. Old tokens that still carry `ai:catalog:read` or `ai:rfq:create` remain valid for authentication but gain no protected access; new tokens cannot request those scopes. OAuth and manual API tokens share the same scope namespace and enforcement.
-
+Use the exposed procurement guide, current tool schema and verified connection metadata to select the smallest needed capability and API scope. Protected plugin reads/writes require current API scopes and record ownership. The new `me:web:login` scope separately authorizes a normal website login; it is not another read scope or an API scope upgrade. Old `me:web` does not satisfy it. After genuine consent and successful handoff, website pages use normal account permissions and object ownership, while plugin API scopes stay unchanged. Every AI business action still needs effective buyer authorization and applicable safety confirmation; normal website permissions do not authorize an unrequested action. Never extract browser credentials or invent routes/scopes from a historical API matrix.
 
 ## Cloud connection and limits
 
-The merged source implements stateless Streamable HTTP at `/mcp`, resource metadata at `/.well-known/oauth-protected-resource/mcp` and optional public-client registration at `/oauth/register`. MCP OAuth binds the exact configured API-origin `/mcp` resource and requires PKCE S256 and exact registered callbacks; access tokens are short-lived (15 minutes) with no refresh grant. DCR is enabled in the current TEST deployment with user approval; do not change that configuration from this skill. PR #281 negotiates client requests containing authorization_code plus refresh_token to AuthCode-only and does not implement refresh tokens. The parent has verified real OAuth account connection and the customer_profile read only; continue using actual exposed tools and metadata for other operations without claiming a complete business acceptance. Client IDs and callbacks must come from the actual authorized setup; do not register clients, enable DCR, alter allowlists or invent values through this skill.
+The source implements stateless Streamable HTTP at `/mcp`, precise resource metadata at `/.well-known/oauth-protected-resource/mcp` and optional public-client registration at `/oauth/register`. OAuth binds the configured API-origin `/mcp` resource, PKCE S256 and exact callbacks. After deployment and explicit “Keep connected” consent, access remains 15 minutes and successful refresh rotates to a new 30-day idle deadline, with no fixed active lifetime. Old clients/grants default to no refresh until fresh consent; host-cached old metadata can require connection removal/recreation. The host alone manages secure storage and serialized refresh. Never record, extract or exchange tokens in AI workflows, add parallel refresh attempts, or embed credentials in this package. Revocation invalidates the authorization; normal database-backed restart preserves refresh state, while forced termination or a lost rotation response may require reconnecting.
+
+Do not register clients, enable DCR, change configuration/allowlists or invent callbacks through this skill. Source support is separate from live TEST deployment and host validation.
 
 Require the live tool contract's scope and record ownership checks; prompt approval alone is not account authorization. Set `buyer_confirmed=true` for the specific submission/acceptance/revision actions in the table only when effective explicit authorization covers the exact payload, including still-valid prior authorization under the rule above; do not add that requirement to drafts, profile edits, link issuance or messages. A separately authorized local client still follows its own `--confirm` contract. Preserve every required `idempotency_key` and native validation; never bypass a CAPTCHA or invent a response token. A CAPTCHA requirement must be completed by the buyer through the website. On unavailable tools, authentication failures or missing scope, stop dependent calls and use the supported host Connect / reconnect flow.
+
+## Normal-website login handoff (merged PR #286)
+
+The [mechanism document](https://github.com/hx123321/vantreCombB2B/blob/b91ff92416b74f2ab9649cbdbff5535dab784f8e/docs/design/procurement-browser-sso.md) and [actual tool schema](https://github.com/hx123321/vantreCombB2B/blob/b91ff92416b74f2ab9649cbdbff5535dab784f8e/backend/cmd/server/procurement_browser.go) describe the merged implementation. Reviewed head `2a824c96eb63799c8988a9ff116958e84289328e` passed independent review and both CI checks, then merged as `b91ff92416b74f2ab9649cbdbff5535dab784f8e`. The parent is building/deploying; live deployment and genuine OAuth consent remain unverified. The buyer confirmed normal account permissions, normal website lifetime/logout, plugin revocation leaving existing website sessions intact, and TEST activation. CI and synthetic local HTTPS original-page tests do not establish real TEST or ChatGPT-host acceptance.
+
+### Required independent context and same-authorization handoff
+
+1. Inspect the actually exposed tool/schema and verify the host can create an **independent/incognito browser context**, open pages, click and read DOM. This context requirement is mandatory guidance. A normal-context second tab is insufficient. Preserve the buyer's original context and saved ordinary login. If isolation/browser capability is unavailable, stop and tell the buyer; do not borrow a context containing another account, clear its cookies/storage, log it out or silently replace its identity.
+2. In that independent context, if the displayed normal website identity is verifiably the same connected buyer and login is valid, enter the original website directly. A repeated handoff preserves server-confirmed same-account valid access or refresh login without reissuing/rotating its credentials; same-account refresh-only login is supported after successful server confirmation. A different valid account, including refresh-only login, is rejected rather than overwritten. If identity is uncertain, stop and choose a fresh independent context. Do not infer identity from a copied token or treat expired refresh replay as a valid login.
+3. For a new login, call `open_procurement_browser` with `action=prepare`, optionally supported `locale` (default en) and fixed `target` (default home). Prepare must not include `flow_id`/`challenge`. Its response contains `browser_url`, private `flow_id`, connected account email, `target_path`, `requires_fresh_context=true` and a 120-second deadline. Open only the fixed returned URL in the independent context; target is saved server-side, with no caller URL/redirect/path. Never append the private flow ID to the URL.
+4. Click Begin in the original tab, read its new `#challenge` DOM, and keep the flow/challenge private and transient. The 90-second challenge is bound to that browser's HttpOnly cookie. Never accept one pasted by a user/person/chat or read from another page/browser. Use the same MCP authorization/access reference to call `action=bind` with exactly `flow_id` and `challenge`, then click Continue in the original tab. Complete consumes the binding once and moves to the saved original website page. Do not call the underlying auth endpoint directly or manually transport/install credentials.
+
+### Original website targets and authorization
+
+This finite table explains the reviewed tool's target enum, not all business APIs. Do not hardcode other capabilities or assume a source tool is live.
+
+| target | Original page |
+| --- | --- |
+| `home` | `/` |
+| `profile` | `/account/profile` |
+| `quotes` | `/track/quote-records` |
+| `orders` | `/track/order-progress` |
+| `shipments` | `/track/shipping-status` |
+| `folder` | `/quote/folder` |
+
+Supported locales preserve the original website prefix. These original pages, forms, account controls, files, quote folder and business handlers keep their ordinary features and native account/record permissions. Website permissions are normal-login permissions, not the intersection with plugin API scopes. Plugin calls still enforce their own API scopes. AI must follow the buyer's explicit authorization for every business action and any required exact-payload confirmation, native ownership, validation and idempotency; an approved sign-in does not approve all available writes or credential changes.
+
+New `me:web:login` consent explicitly covers the normal website-login semantics. Old `me:web` is insufficient; it cannot automatically upgrade or gain the new scope through grant management PATCH. Request genuine OAuth consent, not manual grant edits. Keep-connected consent for plugin renewal is separate from website-login scope consent; installing/activating a package grants neither. The merged implementation does not add special quote-folder scopes or require a second website capability system.
+
+### Ordinary session lifecycle and revocation boundary
+
+Prepare is valid 120 seconds and challenge 90 seconds, with single bind/atomic one-time consumption and current grant/access/account/client/resource checks. Expired/consumed tickets cannot be replayed. A restart or wrong handoff instance invalidates ephemeral tickets, so obtain a fresh handoff rather than weakening checks.
+
+Completion creates or reuses an ordinary durable website session. Website short access is 30 minutes and normal refresh 30 days under the existing rotation/idle rules, exactly as manual login. Website lifetime is independent of the short ticket deadlines. All subsequent website reads/writes/downloads/refresh/logout follow the original website chain. There is no separate delegated business session or per-page authentication adapter to manage through the skill.
+
+Website expiry/logout does not revoke the plugin grant. If plugin authorization is still valid, start a new prepare/challenge/bind/complete flow without repeating OAuth consent; the host renews its plugin credentials when permitted. Revoking the plugin blocks future handoff steps but **does not log out an already established website session or stop its ordinary refresh**. End that website session with its normal logout in the independent context. Explain this boundary accurately; do not promise that plugin revocation ends both logins.
+
+OAuth access/refresh tokens never reach browser JS, localStorage or URL. The page receives only the ordinary website short access and the ordinary refresh cookie through existing website helpers. Let the website manage those credentials as in manual login; never inspect, copy, expose or store them in AI output/artifacts, or substitute a manual credential exchange. Keep flow/challenge private as well. There is no special delegated download or reader workflow; normal website download rules apply, while the separate MCP `document_link` remains caller-IP-bound and does not fetch/attach/stream file bytes. No customer-upload API is added.
+
+### TEST activation approved; deployment and consent pending
+
+Default source configuration remains `PROCUREMENT_BROWSER_ENABLED` unset/false and an empty `PROCUREMENT_BROWSER_CLIENT_IDS` list. TEST activation has user approval, but approval is not evidence of deployed settings. PR #286 is merged as `b91ff92416b74f2ab9649cbdbff5535dab784f8e`. The parent must record the actual deployed SHA, verify the approved exact client IDs and `https://test-api.vantrecomb.com` / `https://test.vantrecomb.com` API/browser origins, and confirm actual host independent-context support. Until then, do not claim this feature is live.
+
+The handoff endpoints are `/api/v1/auth/procurement-browser/begin` and `complete`, under the ordinary refresh cookie Path so account conflicts include refresh-only logins. The existing same-origin `/api/v1/*` rewrite must preserve Cookie/Set-Cookie, exact Origin and `X-Vantre-Handoff`, reject caching and use an actual upstream Host matching configured website/API Host. Do not invent proxy paths, broaden CORS or trust forwarded hosts. Prepare/MCP bind/complete require the same process/consistent routing; completed ordinary durable website sessions use the normal persistence chain. Real TEST verification must check browser cookie flags with the existing TLS/proxy semantics.
+
+After parent review/deployment and plugin update, the user reactivates and completes genuine `me:web:login` consent, preserving API scopes required for plugin tasks. Do not create real grants, register clients or alter settings from the skill. The review package follows the merged source; actual deployment and real user consent status remain for the parent to record before claiming live acceptance.
