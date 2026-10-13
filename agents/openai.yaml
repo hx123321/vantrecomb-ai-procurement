@@ -1,4 +1,4 @@
 interface:
   display_name: "Vantrecomb AI Procurement"
   short_description: "Run Vantrecomb AI sourcing safely"
-  default_prompt: "Help me source a custom comb project through Vantrecomb."
+  default_prompt: "Help me source a custom comb project through Vantrecomb. Use the connected inline confirmation card for quote acceptance, order intent and inquiry closure; leave them pending until I click."
