@@ -1,24 +1,19 @@
-# PRIVATE TEST App 3D 技能发布记录
+# PRIVATE TEST 技能更新与验收
 
-本次从最新采购插件 main `c980f45db5f56a43408a51527c6405a846f4482f`（已合PR3/4）准备用户明确授权的3D技能更新。PR4的回答语言/精确版本预览指导原在根技能，此次同步到App实际加载的packaged skill，根独立技能不修改。只提升当前账号1.0.2至1.0.3，保留插件/App/MCP/OAuth/展示、USER/PRIVATE范围；不创建插件、不公开发布、不改生产/DNS/权限。
+## 发布范围
 
-| 更新前实际读取 | 值 |
-| --- | --- |
-| 插件 | `plugin_asdk_app_6acc06a725048191bbf860d0b7a72642` |
-| App | `asdk_app_6acc06a725048191bbf860d0b7a72642` |
-| 包名/mapping | `dev-6acc06a725048191bbf860d0b7a72642` |
-| 版本/范围 | 1.0.2 / USER / PRIVATE |
-| expected release guard | `pluginrel_6acc3f84f9948191823420f4f948f165` |
-| 本次技能版本 | 1.0.3 |
+本修订更新已有采购插件的技能和说明，不创建新插件，不改变 MCP、OAuth、权限或展示配置。目标技能版本为 1.0.5；通用源码包使用独立版本序列。发布前必须确认对应后端与页面已部署，不能把 PR 合并当作上线。
 
-发布内容从上述main保留全StudioSnapshot高级能力、两模式、严格参数/尺寸/包装组合、错误纠正/并发读回、Logo网页回退、RFQ真实确认联系人及幂等恢复；不降为基础参数。字段说明正文已英文（legacy description_zh/fields_zh键可继续保留），用户回答跟随对话语言，技术键/枚举不翻改。保存不重建、不询价；仅用户请求预览时显式准备精确版本，等待其geometry succeeded及真实renderer完成，复用相同几何/队列任务，不重复失败重试。公共geometry缓存与私有Logo/完整snapshot/账户信息分开，URL不带凭据。
+## 能力说明
 
-当前已部署TEST证据：website backend `63bb81b`、frontend `5dd80e22`、Pipeline `e39cd11`，TEST rebuild服务运行且有真实Blender成功样本。原生MCP当前实际暴露设计capabilities/list/read/create/update/Logo/RFQ；本次read-only测试刷款capabilities成功，608字段、完整snapshot/schema/高级字段/packaging/upload policy与英文response guidance均返回；list_designs成功且当前0条。此证据不证明每个写/精确版本渲染、dense高级组合或真实GPT UI/附件已验。
+- 询价放弃复用 `respond_quote action=abandon`：先读取归属报价，再使用明确确认、原因和幂等键；仅限下单前且无关联订单，成功后回读状态。它不取消订单。
+- 网站登录优先无痕，不可用时普通浏览器；异账号只在可信页面且用户明确允许后切换，取消保留原登录。保留原短期交接、scope 和会话边界。
+- 3D 使用真实完整参数契约，保留高级字段与版本。保存不重建、不询价；仅明确预览时准备对应版本，复用同几何和已有任务，失败重试须由用户明确要求。
+- 内嵌组件打开、几何成功、模型可见及 Logo 导入分别验收。组件显示重建错误不等于组件未打开；普通消息附加组件失败也不证明 MCP App 不可用。不得用网站预览或资源状态码替代真实内嵌验收。
+- Logo 文件准备、宿主传输和服务端导入是不同步骤。以实际暴露的输入类型和返回结果为准，保留文件身份；准备失败、网站回退或禁用提示都不是上传成功。禁止伪造附件和绕过来源限制。
 
-`PROCUREMENT_DESIGN_UI_ENABLED`仍关闭，attachment hostname名单空。普通预览link不自动iframe；不开UI、不注册域名/DNS、不添加CORS/CSP能力。原native设计工具按actualschema及账户授权执行；缺scope仍走用户真实consent，旧grant不自动升级。一般文件不改设计Logo通道的用途边界。SSO修复在另一个任务，当前技能保持现行prepare/challenge/bind/complete和异账户拒绝的行为描述，不抢先写异账户确认切换。
+## 同一插件更新
 
-本包用原legacy manifest（仅version提高）和完整技能/支持文件，新gpt-design reference保留；不放.app.json/root manifest/MCP配置，上传overlay保留App-owned文件，delete_paths留空。现有0.1.4完整源包仅可复用源码，不能用于覆盖目标App或另一独立技能。版本按实际1.0.2严格递增，无凭据或真实grant嵌入。
+使用现有打包流程准备 skills-only overlay，保留 App 管理的文件、原技能名及必要支持文件。版本必须高于实际安装版本；发布前读取最新 release，使用更新接口要求的并发保护，更新后回读版本及技能。当前账户的插件标识、发布标识、凭据与私有测试记录不得写入本公开文档。
 
-先结构/manifest/引用检查，再用上表expected_release_id调用Plugin Creator update同一private App；若release变动先协调源内容，不盲换guard。成功后回读版本/release、skill/reference和.app绑定/展示，只有工具成功结果证明保存。最终返回插件链接与新release，用户若仍加载旧技能需Refresh或重新激活；已有设计原生工具无需为仅技能更新重复授权，缺scope另行真实consent。
-
-不做逐文件匹配/hash清单、不重复全量构建/备份，不调用RFQ/业务提交、不部署服务器。发布后的真实3D写/预览验证按明确客户要求和实际tool schema完成，不把保存插件等同全部3D功能通过。
+完整通用源码包不能直接覆盖具体 App 配置。根独立技能及 ERP 技能不因本修订新增或替换。只做必要结构与引用检查，不重复构建业务后端或生成模型。仅技能更新不要求重新授予 OAuth；真实缺少 scope 时仍由用户通过宿主授权。
