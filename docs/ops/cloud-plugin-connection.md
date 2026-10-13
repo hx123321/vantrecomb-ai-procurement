@@ -1,37 +1,19 @@
-# PRIVATE TEST App 技能 1.0.5 修订候选
+# PRIVATE TEST 技能更新与验收
 
-本次在采购插件 main `9ce7a3a59edb9470c0a99c96e1b4f36520e8dd7f` 上准备下一版技能和说明，交由主线程独立审核、合并。**尚未发布插件；必须等主线程确认本批 TEST 部署生效后再更新同一私有插件。** 不新建插件、连接、任务或 ERP 技能，不修改权限、DNS、CORS、allowlist，不生成真实 OAuth grant，不执行真实报价放弃。
+## 发布范围
 
-| 当前已读取的账号版本 | 值 |
-| --- | --- |
-| 插件 | `plugin_asdk_app_6acc06a725048191bbf860d0b7a72642` |
-| App | `asdk_app_6acc06a725048191bbf860d0b7a72642` |
-| 包名 / mapping | `dev-6acc06a725048191bbf860d0b7a72642` |
-| 当前版本 / 范围 | 1.0.4 / USER / PRIVATE |
-| 当前 release，后续发布须重新读取核对 | `pluginrel_6acd5b13875c8191831a1bb58d99efe5` |
-| 目标 App 技能 overlay 版本 | 1.0.5 |
-| 通用源码包版本（独立版本序列） | 0.1.5 |
+本修订更新已有采购插件的技能和说明，不创建新插件，不改变 MCP、OAuth、权限或展示配置。目标技能版本为 1.0.5；通用源码包使用独立版本序列。发布前必须确认对应后端与页面已部署，不能把 PR 合并当作上线。
 
-## 真实合并契约
+## 能力说明
 
-B2B [PR #298](https://github.com/hx123321/vantreCombB2B/pull/298) 已合并为 `e99108c22a5efb11d46fa26f6e77b6a19f2a0d71`；ERP [PR #133](https://github.com/hx123321/CombManager/pull/133) 已合并为 `4cb8cbcc0f5d3c493e9a42c1c7e880246c33e308`。本批 TEST 发布由既有部署任务按 B2B 后端 → ERP 后端 → 两端 UI 推进，本修订不执行部署，也不把合并当作部署成功。ERP 技能已存在且采用发现式接口，本仓库不追加 ERP 技能或静态业务接口清单。
+- 询价放弃复用 `respond_quote action=abandon`：先读取归属报价，再使用明确确认、原因和幂等键；仅限下单前且无关联订单，成功后回读状态。它不取消订单。
+- 网站登录优先无痕，不可用时普通浏览器；异账号只在可信页面且用户明确允许后切换，取消保留原登录。保留原短期交接、scope 和会话边界。
+- 3D 使用真实完整参数契约，保留高级字段与版本。保存不重建、不询价；仅明确预览时准备对应版本，复用同几何和已有任务，失败重试须由用户明确要求。
+- 内嵌组件打开、几何成功、模型可见及 Logo 导入分别验收。组件显示重建错误不等于组件未打开；普通消息附加组件失败也不证明 MCP App 不可用。不得用网站预览或资源状态码替代真实内嵌验收。
+- Logo 文件准备、宿主传输和服务端导入是不同步骤。以实际暴露的输入类型和返回结果为准，保留文件身份；准备失败、网站回退或禁用提示都不是上传成功。禁止伪造附件和绕过来源限制。
 
-采购技能按 B2B 最终合并代码修订：
+## 同一插件更新
 
-- 报价放弃是现有 `respond_quote` 的 `action=abandon`，不是新工具。使用 `id`、`payload.note` 原因、`buyer_confirmed=true` 和必填 `idempotency_key`，受 `me:quotes:respond` 和记录归属限制。仅未确认下单且未关联订单时可主动放弃；成功立即关闭并释放进行中询价额度，保留历史，送 ERP 检查。操作后回读，409 先读当前状态，不用新键掩盖不确定结果，不能代替订单取消。详见 packaged `references/procurement-workflow.md`，不另复制状态/参数表。
-- 网页 SSO 优先无痕，不可用时可用普通浏览器。保留 prepare → 原标签 challenge → 同 MCP bind → 原页一次性消费。异账号在可信页面显示当前/目标姓名及邮箱；只有明确授权本次切换才确认。取消/关闭/后退保留原登录，批准切换仅影响本站当前浏览器会话，不全局注销、不撤销其他 session/grant。同账号 access/refresh-only 登录沿用；会话变化、过期或重放重新核对。仍需真实 `me:web:login` consent，API scopes 不扩大，长令牌不进入网页或 AI 输出。
-- preview 新增公开 summary 的 `outputSchema`，私有 snapshot/Logo 仍在组件 `_meta`；禁用附件诊断只返回 `observed_attachment_hostname`，不 fetch/DNS/存储或输出临时签名 URL。部署后再读实际 metadata/结果；诊断不批准 host、不等于上传成功。
+使用现有打包流程准备 skills-only overlay，保留 App 管理的文件、原技能名及必要支持文件。版本必须高于实际安装版本；发布前读取最新 release，使用更新接口要求的并发保护，更新后回读版本及技能。当前账户的插件标识、发布标识、凭据与私有测试记录不得写入本公开文档。
 
-## 当前 TEST 3D 状态和保留能力
-
-UI gate 已启用，专用 `ui.domain=https://gpt-preview.vantrecomb.com`，资源来源仅 `https://test.vantrecomb.com`。主会话已发现 render 工具；真实 TEST 设计 version 1 几何 `succeeded`，但 root 的 `include_widget` 返回 `widget unavailable`，内嵌尚未验收。直接 Logo host file 仍返回 `attachment_ingress_not_enabled`，实际附件 hostname 未批准。所有 packaged 技能/reference 已移除“UI gate 仍关闭”的过时说法，仍保留准确的网页 fallback 和未通过边界。
-
-保留完整 StudioSnapshot v2 高级参数发现、one_sentence/guided 两模式、英文解释与用户对话语言、正式尺寸/组合验证、同设计版本并发回读、Logo 幂等恢复及网页回退、RFQ 精确版本/联系人/授权。保存不重建、不自动询价；只有客户请求预览才准备精确版本，复用相同几何/已有任务，遵守 CD 和显式失败重试。几何成功与真实 renderer 完成分别证明，不以工具暴露、ACK 或部署冒充渲染成功。不新增复制维护的参数表。
-
-## 后续同一私有版本更新
-
-沿用 `scripts/package_plugin.py`：完整通用源码包 0.1.5 仅供源码复用，**不能用于覆盖目标 App 或另一独立技能**。真正可更新来源是 `overlays/vantrecomb-test/.codex-plugin/plugin.json`（1.0.5）加 `plugins/vantrecomb-procurement-plugin/skills/`，打包为 skills-only App overlay。它仅带原 legacy manifest 的版本提升及技能/支持文件，不带 `.app.json`、root manifest、MCP/OAuth 配置或 App 展示资产；省略文件由更新工具保留，`delete_paths` 留空。原技能名和兼容 Python 支持文件保留，根独立技能和 ERP 技能不改，无用户凭据嵌入。
-
-本次只做必要文档/manifest/引用及打包结构检查，不重跑后端/前端测试或真实业务动作。主线程独审合并且确认 TEST 部署生效后，重新读取同一插件的 current release 和 App-owned metadata，协调任何并发更新；仅用当时有效的 `expected_release_id` 更新同一 PRIVATE 插件，保留 App 绑定、MCP、OAuth 和展示。成功后回读目标技能/版本/绑定，工具成功才说明版本已保存。用户随后 Refresh 或重新激活，必要时开新会话；仅技能变更不需要额外 consent，实际缺 scope 则走真实授权。
-
-保存插件版本不等于真实 SSO、widget、附件导入或全部业务闭环已验收。发布前不得将本批尚未确认部署的新 SSO 描述为线上已生效。
+完整通用源码包不能直接覆盖具体 App 配置。根独立技能及 ERP 技能不因本修订新增或替换。只做必要结构与引用检查，不重复构建业务后端或生成模型。仅技能更新不要求重新授予 OAuth；真实缺少 scope 时仍由用户通过宿主授权。
