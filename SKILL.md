@@ -88,7 +88,7 @@ Confirm matching deployed server code, current live schema and one-time secure i
 
 ## Inline quote decisions (source contract; deployment and real host acceptance pending)
 
-Implementation: [B2B Draft PR #312](https://github.com/hx123321/vantreCombB2B/pull/312), source head `faf69fcd17423eb63153f3340a7238353be0055a`. This package does not establish deployed or real-host capability.
+Implementation: [B2B Draft PR #312](https://github.com/hx123321/vantreCombB2B/pull/312), source head `b86bcfa77802c4e714b7245b907eded67d7218e6`. This package does not establish deployed or real-host capability.
 
 Use the actual connected procurement MCP tools for these ChatGPT actions. After matching deployment, discover `prepare_quote_confirmation`, `render_quote_confirmation` and `read_quote_confirmation`; never infer availability from this source or a packaged skill. Reply in the buyer's conversation language and keep parameter keys/values English.
 
