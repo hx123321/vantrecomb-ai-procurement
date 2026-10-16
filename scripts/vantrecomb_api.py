@@ -22,7 +22,7 @@ from urllib.request import Request, urlopen
 API_ORIGIN = "https://api.vantrecomb.com"
 AI_PATH_PREFIX = "/api/v1/ai/"
 
-# ponytail: minimal scope catalog (must match backend validApiTokenScopes)
+
 SCOPE_DESCRIPTIONS = {
     "ai:rfq:read": "Read own RFQ status (award/quote). Requires verification via /ai/me/rfqs.",
     "me:profile:read": "Read user profile and organization info. Minimal PII.",
@@ -33,7 +33,7 @@ SCOPE_DESCRIPTIONS = {
     "me:orders:read": "Read own orders and production milestones.",
     "me:shipments:read": "Read own shipment tracking.",
 }
-DEFAULT_MINIMAL_SCOPE = "me:quotes:read"  # ponytail: never default to all scopes
+DEFAULT_MINIMAL_SCOPE = "me:quotes:read"
 
 
 class VantrecombClient:
@@ -77,7 +77,7 @@ def parse_json_argument(value: str | None) -> dict[str, Any] | None:
     return parsed
 
 
-# --- OAuth helpers (minimal, no token persistence) ---
+
 
 def _post_form(path: str, data: dict[str, str], timeout: int = 30) -> dict[str, Any]:
     body = urlencode(data).encode("utf-8")
@@ -103,7 +103,7 @@ def cmd_device_flow(args):
     if not scope:
         print("error: --scope is required (minimal scope, e.g. 'me:quotes:read'). Never request all scopes.", file=sys.stderr)
         sys.exit(2)
-    # validate scopes against known list
+
     requested = scope.split()
     invalid = [s for s in requested if s not in SCOPE_DESCRIPTIONS]
     if invalid:
@@ -120,7 +120,7 @@ def cmd_device_flow(args):
             print("(browser opened automatically)")
         except Exception:
             pass
-    # poll
+
     device_code = resp["device_code"]
     interval = int(resp.get("interval", 5))
     expires_in = int(resp.get("expires_in", 600))
@@ -208,11 +208,11 @@ def cmd_auth_status(args):
     if not token:
         print("No token found. Set VANTRECOMB_API_TOKEN or pass --token.", file=sys.stderr)
         return 1
-    # try a lightweight protected endpoint to validate scope
+
     client = VantrecombClient(token)
-    # try /ai/me/profile via GET (requires me:profile:read) fallback to /ai/me/quotes
+
     try:
-        # Use profile first; if 403, token may still be valid but lacks that scope — try quotes
+
         for path in ["/api/v1/ai/me/profile", "/api/v1/ai/me/quotes"]:
             try:
                 data = client.request_json("GET", path)
@@ -259,7 +259,7 @@ def _confirm_high_risk(path: str, method: str, confirm: bool) -> bool:
         return True
     if confirm:
         return True
-    # interactive confirmation
+
     print(f"\n[confirm] High-risk write: {method} {path}", file=sys.stderr)
     print("This action modifies buyer data (quote accept/message, profile, RFQ submit).", file=sys.stderr)
     print("Show the buyer a summary and obtain explicit approval before proceeding.", file=sys.stderr)
@@ -287,7 +287,7 @@ def main() -> int:
     request.add_argument("--idempotency-key", help="Required for write requests")
     request.add_argument("--confirm", action="store_true", help="Confirm high-risk write (buyer approved)")
 
-    # OAuth helpers
+
     auth = commands.add_parser("auth", help="OAuth & token helpers")
     auth_sub = auth.add_subparsers(dest="auth_cmd", required=True)
     dev = auth_sub.add_parser("device", help="Device Authorization flow (no browser needed on device)")
@@ -319,11 +319,11 @@ def main() -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     elif args.command == "request":
-        # high-risk confirmation
+
         if not _confirm_high_risk(args.path, args.method, args.confirm):
             print("Aborted: buyer confirmation required for high-risk write.", file=sys.stderr)
             return 1
-        # scope check: if POST without token for protected paths, warn
+
         if args.path.startswith("/api/v1/ai/me/") and not args.token:
             print("warning: /ai/me/* requires scoped token (me:*:*). Ensure token has minimal required scope.", file=sys.stderr)
         path, method, payload, key = args.path, args.method, parse_json_argument(args.data), args.idempotency_key

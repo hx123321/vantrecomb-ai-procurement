@@ -46,7 +46,7 @@ def urlopen(request, timeout=30):
     return build_opener(SameOriginRedirectHandler()).open(request, timeout=timeout)
 
 def load_config():
-    # Configuration follows the skill location; process environment always wins.
+
     path=Path(__file__).resolve().parent.parent / '.env'
     if not path.exists(): return
     for line in path.read_text(encoding='utf-8-sig').splitlines():
