@@ -36,8 +36,8 @@ def write_archive(source, output, name, files):
 
 def build(source, output):
     source = source.resolve()
-    # Preserve the cloud release's mapping; its plugin ID is not its app ID.
-    # Syntax is a guard, not proof of registration or account authorization.
+
+
     binding = json.loads((source / ".app.json").read_text(encoding="utf-8"))
     apps = binding.get("apps")
     if not isinstance(apps, dict) or len(apps) != 1:
@@ -62,14 +62,14 @@ def build(source, output):
 
 
 def build_app_overlay(source, manifest_path, output):
-    # Preserve the App-owned legacy manifest; only skills path and version change.
+
     manifest_bytes = manifest_path.read_bytes()
     manifest = json.loads(manifest_bytes)
     if manifest.get("skills") != "./skills":
         raise ValueError("App overlay must load the bundled skills directory")
     files = {".codex-plugin/plugin.json": manifest_bytes}
     files.update(runtime_files(source, ("skills",)))
-    # .app.json, root manifest, MCP config and App presentation assets are omitted.
+
     write_archive(source, output, manifest["name"], files)
 
 
