@@ -5,7 +5,7 @@ description: Buyer-authorized Vantrecomb sourcing, 3D and quote/order follow-up.
 
 # Vantrecomb AI Procurement
 
-Use native MCP: procurement_search then procurement_info(operation), then its returned entrypoint. Read the guide via procurement_query({operation:"procurement_guide",arguments:{}}). Below, other names are operation IDs unless dedicated; follow [progressive routing](references/progressive-mcp.md). verify host/deployment. Buyer language, full schema keys/enums. Explicit local tasks only: scripts/vantrecomb_api.py ([transport](references/api-workflow.md)). No curl, ERP/public routes or identity/permission bypass. Check ownership/scopes on calls/replays; missing tools/401/403 stop dependent work; reconnect via host. Never enlarge grants or expose/store credentials, cookies, private URLs/capabilities.
+Use native MCP: procurement_search then procurement_info(operation), then its returned entrypoint. Read the guide via procurement_query({operation:"procurement_guide",arguments:{}}). Below, other names are operation IDs unless dedicated; follow [progressive routing](references/progressive-mcp.md). Verify host/deployment. Buyer language, full schema keys/enums. Explicit local tasks only: scripts/vantrecomb_api.py ([transport](references/api-workflow.md)). No curl, ERP/public routes or identity/permission bypass. Check ownership/scopes on calls/replays; missing tools/401/403 stop dependent work; reconnect via host. Never enlarge grants or expose/store credentials, cookies, private URLs/capabilities.
 
 ## Buyer intent
 
