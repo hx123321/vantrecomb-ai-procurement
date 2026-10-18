@@ -1,0 +1,3 @@
+# Procurement workflow reference
+
+Follow the core SKILL and [progressive MCP contract](progressive-mcp.md). The live operation schema owns fields and current availability. design_sidebar is the model/app/manual-thread fullscreen entry; get_design_links supplies trusted non-UI fallback. render_design_preview and inline confirmation render/decide/probe remain retired. Read saved content through read_design before edits; preview reads are effectful and require buyer intent. Preserve complete producer StudioSnapshot, private artwork, exact versions, ownership, scopes and original business/confirmation/idempotency checks.
