@@ -14,3 +14,9 @@ Use `procurement_query({operation,arguments})` only for pure reads; use `procure
 - Dedicated `upload_design_logo` preserves top-level official file and `_meta["openai/fileParams"]:["file"]`. Never nest the file in generic arguments. All verified-host identity, byte/format limits, owner and secure ingress rules in the main Skill remain.
 - Operation `read_design_asset` through `procurement_query` returns authorized original MCP image content. Do not replace it with a guessed URL.
 - `respond_quote` supports messages or request-revision with typed fields. Read its conditional contract in info. Message notes must be nonempty after trim, at most 2000 Unicode code points. Discussion references require the current quote_revision; snapshot_id also requires item_id. Top-level action selects behavior; legacy payload.action is ignored and approves nothing. Revisions require exact confirmation. Cached accept/abandon fail closed.
+
+## Website login
+
+open_procurement_browser needs fresh me:web:login consent; me:web is insufficient. Prefer incognito. Prepare/open trusted URL, Begin, read that tab's challenge, bind via original MCP authorization, Continue there. No foreign/pasted challenges, flow/credentials in URLs or cookie/JWT export/install. Verify returned/browser identity before business.
+
+Reuse same-account login; switching needs trusted-page confirmation, affects only this site. Cancel/close/back keeps session. Changed session/expiry/replay needs fresh review/handoff from MCP; no re-consent while grant valid. Website permissions/expiry/logout apply; MCP API scopes are separate. Revocation stops new handoffs, not existing login; logout keeps plugin. Handoff/session expiry differ. No business-policy bypass.

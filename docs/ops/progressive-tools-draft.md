@@ -14,3 +14,5 @@ Validation:
 - B2B current-main targeted tests are run with dedicated loopback MySQL fixtures; final results: 95 top-level Go PASS, zero FAIL, one separately configured real-producer SKIP; all five formerly skipped MySQL cases and the new facade RFQ MySQL case execute. Native sidebar protocol: 51 Node PASS. Actual Gemini/Claude/Codex refreshing, OAuth challenges, file injection and native App/model acceptance remain unverified for this Draft.
 
 The canonical source is the committed skill tree. Review ZIPs are temporary local outputs under `.tmp/` and are deliberately not committed. No online RFQ, mail, upload or commercial action was performed.
+
+CI follow-up: B2B run 39091103006 exposed the unchanged 8,053-byte core-Skill budget. The failure was locally reproduced at 9,680 bytes. The synchronized core is now 7,859 bytes, with detailed progressive and full website-login rules retained in its on-demand reference. The first instruction explicitly routes procurement_guide through procurement_query; subsequent non-dedicated names are operation IDs. Budgets and mandatory safety facts were not relaxed. Python tests and both package builds pass again.

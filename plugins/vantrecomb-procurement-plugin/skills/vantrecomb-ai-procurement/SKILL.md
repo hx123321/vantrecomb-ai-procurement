@@ -5,15 +5,7 @@ description: Buyer-authorized Vantrecomb sourcing, 3D and quote/order follow-up.
 
 # Vantrecomb AI Procurement
 
-Use native MCP: procurement_guide/live schemas first; verify host/deployment. Buyer language, full schema keys/enums. Explicit local tasks only: scripts/vantrecomb_api.py ([transport](references/api-workflow.md)). No curl, ERP/public routes or identity/permission bypass. Check ownership/scopes on calls/replays; missing tools/401/403 stop dependent work; reconnect via host. Never enlarge grants or expose/store credentials, cookies, private URLs/capabilities.
-
-## Progressive MCP discovery (Draft source)
-
-Use procurement_search then procurement_info(operation) for the exact schema, effect, original scope and entrypoint. Default tools/list is actually reduced for generic hosts; no ui.visibility filtering or list_changed support is assumed. Use procurement_query(operation,arguments) for audited pure reads, procurement_mutate for allowed effects. Only registered procurement operations are accepted, never URLs, HTTP paths/methods or MVC names. Cached legal tool names use the same parameter/auth/owner/confirmation/idempotency gates; retired inline tools remain retired. Missing/revoked scope stops dependent calls; discovery grants no permission.
-
-Prefer rfq.prepare then rfq.submit(source:session) for single/multiple products, independent same-SKU item IDs and exact saved design_reference versions with complete customization/artwork/packaging. rfq.submit also groups the original source:design and source:folder (direct AI batch, not a website basket) contracts. Read each source schema; never discard its distinct fields/contact or lifecycle rules. Exact approved submission needs buyer_confirmed:true.
-
-account_profile stays minimal identity; customer_profile separately reads contact/default address. upload_design_logo stays dedicated with official top-level file and openai/fileParams. design_sidebar stays the existing model/app/thread entry; get_design_links is a pure query operation and read_design_preview is effectful because it can queue work. Quote prepare/read/execute remain separate dedicated tools. Read actual status before retrying unknown outcomes. See [progressive contract](references/progressive-mcp.md).
+Use native MCP: procurement_search then procurement_info(operation), then its returned entrypoint. Read the guide via procurement_query({operation:"procurement_guide",arguments:{}}). Below, other names are operation IDs unless dedicated; follow [progressive routing](references/progressive-mcp.md). verify host/deployment. Buyer language, full schema keys/enums. Explicit local tasks only: scripts/vantrecomb_api.py ([transport](references/api-workflow.md)). No curl, ERP/public routes or identity/permission bypass. Check ownership/scopes on calls/replays; missing tools/401/403 stop dependent work; reconnect via host. Never enlarge grants or expose/store credentials, cookies, private URLs/capabilities.
 
 ## Buyer intent
 
@@ -53,6 +45,4 @@ Use owned saved design, me:designs:write, authorized file and stable key/metadat
 
 ## Website login
 
-open_procurement_browser needs fresh me:web:login consent; me:web is insufficient. Prefer incognito. Prepare/open trusted URL, Begin, read that tab's challenge, bind via original MCP authorization, Continue there. No foreign/pasted challenges, flow/credentials in URLs or cookie/JWT export/install. Verify returned/browser identity before business.
-
-Reuse same-account login; switching needs trusted-page confirmation, affects only this site. Cancel/close/back keeps session. Changed session/expiry/replay needs fresh review/handoff from MCP; no re-consent while grant valid. Website permissions/expiry/logout apply; MCP API scopes are separate. Revocation stops new handoffs, not existing login; logout keeps plugin. Handoff/session expiry differ. No business-policy bypass.
+Discover open_procurement_browser through info. It requires me:web:login consent, the trusted tab's challenge and site confirmation before account switching. Changed session/expiry/replay needs fresh review/handoff from MCP. Read [website login boundaries](references/progressive-mcp.md#website-login) before use; never export credentials or use website permissions to bypass MCP policy.
