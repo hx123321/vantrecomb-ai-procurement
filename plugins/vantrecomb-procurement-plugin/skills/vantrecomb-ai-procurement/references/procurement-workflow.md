@@ -1,3 +1,5 @@
 # Procurement workflow reference
 
 Follow the core SKILL and [progressive MCP contract](progressive-mcp.md). The live operation schema owns fields and current availability. design_sidebar is the model/app/manual-thread fullscreen entry; get_design_links supplies trusted non-UI fallback. render_design_preview and inline confirmation render/decide/probe remain retired. Read saved content through read_design before edits; preview reads are effectful and require buyer intent. Preserve complete producer StudioSnapshot, private artwork, exact versions, ownership, scopes and original business/confirmation/idempotency checks.
+
+For a custom component color, send HEX in `previewHex` with `mode: "custom"`. Keep standard color selection on its existing rule. Do not send a color `reference` in a new full snapshot or patch. Keep historical snapshots as saved. Put the buyer's text only in the approved formal inquiry Project note, using `project_description` on the website or `requirements.notes` for the AI RFQ session or batch. Do not put that text in saved design requirements or invent an input field.
